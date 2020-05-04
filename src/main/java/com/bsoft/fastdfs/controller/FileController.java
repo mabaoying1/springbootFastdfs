@@ -64,7 +64,7 @@ public class FileController {
      * http://192.168.72.130/group1/M00/00/00/wKhIgl0n4AKABxQEABhlMYw_3Lo825.png
      */
     @ApiOperation(value="上传文件", notes="测试FastDFS文件上传")
-    @RequestMapping(value = "/uploadFile",headers="content-type=multipart/form-data", method = RequestMethod.POST)
+    @RequestMapping(value = "/uploadFile",consumes = "multipart/*",headers="content-type=multipart/form-data", method = RequestMethod.POST)
     public ResponseEntity<String> uploadFile (@RequestParam("file") MultipartFile file){
         String result ;
         try{

@@ -1,6 +1,8 @@
 package com.bsoft.fastdfs.config;
 
+import com.github.tobato.fastdfs.domain.fdfs.FileInfo;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
+import com.github.tobato.fastdfs.domain.proto.storage.DownloadByteArray;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -11,11 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Set;
 
 @Component
 public class FileDfsUtil {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileDfsUtil.class);
+    private  final  static Logger LOGGER = LoggerFactory.getLogger(FileDfsUtil.class);
     @Resource
     private FastFileStorageClient storageClient ;
 
@@ -97,7 +100,7 @@ public class FileDfsUtil {
 
 
     /**
-     * 上传图片文件
+     * 上传图片并且生成缩略图
      */
     public String upload(MultipartFile multipartFile) throws Exception{
         String originalFilename = multipartFile.getOriginalFilename().
@@ -124,4 +127,59 @@ public class FileDfsUtil {
             LOGGER.info(e.getMessage());
         }
     }
+
+    /**
+     * 下载文件
+     *
+     * @param fileUrl
+     * @return
+     * @throws IOException
+     */
+    public byte[] downloadFile(String fileUrl) throws IOException {
+        String group = fileUrl.substring(0, fileUrl.indexOf("/"));
+        String path = fileUrl.substring(fileUrl.indexOf("/") + 1);
+        DownloadByteArray downloadByteArray = new DownloadByteArray();
+        byte[] bytes = storageClient.downloadFile(group, path, downloadByteArray);
+        return bytes;
+
+    }
+
+    /**
+            * 查看文件的信息
+     *
+             * @param groupName
+     * @param path
+     * @return
+             */
+    public FileInfo getFile(String groupName, String path) {
+        FileInfo fileInfo = null;
+        LOGGER.info("文件信息入参，groupName:{}，path:{}", groupName, path);
+        try {
+            fileInfo = storageClient.queryFileInfo(groupName, path);
+            LOGGER.info("文件信息:{}", fileInfo.toString());
+        } catch (Exception e) {
+            LOGGER.error("Non IO Exception: Get File from Fast DFS failed", e);
+        }
+        return fileInfo;
+    }
+
+    /**
+     * 获取文件元信息
+     *
+     * @param groupName
+     * @param path
+     * @return
+     */
+    public Set getMetadata(String groupName, String path) {
+        Set mataData = new HashSet<>();
+        try {
+            mataData = storageClient.getMetadata(groupName, path);
+            LOGGER.info("文件元信息:{}", mataData.toArray());
+        } catch (Exception e) {
+            LOGGER.error("Non IO Exception: Get File from Fast DFS failed", e);
+        }
+        return mataData;
+    }
+
+
 }
